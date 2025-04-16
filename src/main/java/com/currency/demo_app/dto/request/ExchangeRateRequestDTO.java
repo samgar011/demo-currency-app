@@ -1,10 +1,10 @@
 package com.currency.demo_app.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 public class ExchangeRateRequestDTO {
     private String sourceCurrency;
     private String targetCurrency;
