@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+
+  redis:
+    image: redis:7.2.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  demo-db:
+    image: postgres:14.1-alpine
+    container_name: demo-db
+    restart: always
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo123
+      POSTGRES_DB: demo_db
+    ports:
+      - '5432:5432'

@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/demo_db
+    username: demo
+    password: demo123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+currencylayer:
+  api:
+    key: f5b32e84b822633a61f3fb404327edb5
+    url: http://api.currencylayer.com/live
