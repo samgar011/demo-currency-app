@@ -28,3 +28,11 @@ currencylayer:
   api:
     key: f5b32e84b822633a61f3fb404327edb5
     url: http://api.currencylayer.com/live
+
+fixer:
+  api:
+    key: fdf2164434cfe33015b16138377c6c4d
+    url: http://data.fixer.io/api/latest
+
+exchange:
+  provider: currencylayer

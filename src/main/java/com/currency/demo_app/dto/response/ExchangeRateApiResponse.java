@@ -1,19 +1,30 @@
 package com.currency.demo_app.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExchangeRateApiResponse {
     private boolean success;
     private String source;
-    private Map<String, Double> quotes;
-
+    private Map<String, BigDecimal> quotes;
+    private ErrorResponse error;
     public boolean isSuccess() {
         return success;
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    @Setter
+    public static class ErrorResponse {
+        private int code;
+        private String info;
+    }
+
+
 }

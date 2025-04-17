@@ -2,6 +2,8 @@ package com.currency.demo_app.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,13 +28,13 @@ public class CurrencyConversion {
     private String targetCurrency;
 
     @Column(nullable = false)
-    private Double sourceAmount;
+    private BigDecimal sourceAmount;
 
     @Column(nullable = false)
-    private Double convertedAmount;
+    private BigDecimal convertedAmount;
 
     @Column(nullable = false)
-    private Double exchangeRate;
+    private BigDecimal exchangeRate;
 
     private LocalDateTime createdAt;
 }
