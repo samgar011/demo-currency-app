@@ -5,6 +5,7 @@ import com.currency.demo_app.dto.request.CurrencyConversionFilterRequestDTO;
 import com.currency.demo_app.dto.request.CurrencyConversionRequestDTO;
 import com.currency.demo_app.dto.response.CurrencyConversionListResponseDTO;
 import com.currency.demo_app.dto.response.CurrencyConversionResponseDTO;
+import com.currency.demo_app.enums.ErrorCode;
 import com.currency.demo_app.exceptions.*;
 import com.currency.demo_app.mapper.CurrencyConversionMapper;
 import com.currency.demo_app.model.CurrencyConversion;
@@ -24,7 +25,6 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +43,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
 
     @Override
-    public CurrencyConversionResponseDTO convertCurrency(CurrencyConversionRequestDTO request) {
+    public CurrencyConversionResponseDTO convertCurrency(CurrencyConversionRequestDTO
+                                                                     request) {
         try {
             BigDecimal amount = request.getAmount();
             if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -54,7 +55,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
             String targetCurrency = request.getTargetCurrency().toUpperCase();
 
             BigDecimal exchangeRate = exchangeRateService
-                    .getExchangeRate(sourceCurrency, targetCurrency, request.isUseExternalApi())
+                    .getExchangeRate(sourceCurrency, targetCurrency,
+                            request.isUseExternalApi())
                     .getRate();
 
             BigDecimal convertedAmount = amount.multiply(exchangeRate);
@@ -71,7 +73,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
                             .build()
             );
 
-            return conversionMapper.toDto(saved);
+            return conversionMapper.convert(saved);
 
         } catch (ServiceException e) {
             throw e;
@@ -83,28 +85,33 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
     @Cacheable(
             value = "conversionFilters",
             key = "T(com.currency.demo_app.util.CacheKeyUtil).filterKey(#request)"
-            )
+    )
     @Override
-    public CurrencyConversionListResponseDTO filterConversions(CurrencyConversionFilterRequestDTO request) {
+    public CurrencyConversionListResponseDTO filterConversions
+            (CurrencyConversionFilterRequestDTO request) {
         if (request.getTransactionId() == null && request.getDate() == null) {
             throw new InvalidRequestException(INVALID_FILTER);
         }
 
         try {
-            PageRequest pageRequest = PageRequest.of(request.getPage(), request.getSize());
+            PageRequest pageRequest = PageRequest.of(request.getPage(),
+                    request.getSize());
             Page<CurrencyConversion> page;
 
             if (request.getTransactionId() != null) {
-                page = conversionRepository.findByTransactionId(request.getTransactionId(), pageRequest);
+                page = conversionRepository.findByTransactionId(request
+                        .getTransactionId(), pageRequest);
             } else {
                 LocalDateTime startOfDay = request.getDate().atStartOfDay();
                 LocalDateTime endOfDay = request.getDate().atTime(LocalTime.MAX);
-                page = conversionRepository.findByCreatedAtBetween(startOfDay, endOfDay, pageRequest);
+                page = conversionRepository.findByCreatedAtBetween(startOfDay,
+                        endOfDay, pageRequest);
             }
 
-            List<CurrencyConversionResponseDTO> conversions = page.getContent()
+            List<CurrencyConversionResponseDTO> conversions = page
+                    .getContent()
                     .stream()
-                    .map(conversionMapper::toDto)
+                    .map(conversionMapper::convert)
                     .collect(Collectors.toList());
 
             return CurrencyConversionListResponseDTO.builder()
@@ -124,7 +131,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
             value = "bulk",
             key = "T(com.currency.demo_app.util.CacheKeyUtil).bulkKey(#file, #useExternal)"
     )
-    public List<BulkConversionResultDTO> processBulkFile(MultipartFile file, boolean useExternal) {
+    public List<BulkConversionResultDTO> processBulkFile(MultipartFile file,
+                                                         boolean useExternal) {
         if (file.isEmpty()) {
             throw new FileProcessingException(EMPTY_FILE);
         }
@@ -133,7 +141,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
             throw new FileProcessingException(INVALID_FILE_TYPE);
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+        try (BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             return reader.lines()
                     .skip(1)
                     .map(new Function<String, BulkConversionResultDTO>() {
@@ -141,7 +150,8 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
                         @Override
                         public BulkConversionResultDTO apply(String line) {
-                            BulkConversionResultDTO result = processBulkLine(line, lineNumber++, useExternal);
+                            BulkConversionResultDTO result = processBulkLine(line,
+                                    lineNumber++, useExternal);
 
                             if (useExternal) {
                                 try {
@@ -162,11 +172,13 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
         }
     }
 
-    private BulkConversionResultDTO processBulkLine(String line, int lineNumber, boolean useExternal) {
+    private BulkConversionResultDTO processBulkLine(String line, int lineNumber,
+                                                    boolean useExternal) {
         try {
             String[] tokens = line.trim().split("\\s*,\\s*");
-            if (tokens.length != 3) throw new IllegalArgumentException("Expected 3 values per line");
-
+            if (tokens.length != 3) {
+                throw new FileProcessingException(ErrorCode.INVALID_CSV_FORMAT);
+            }
             BigDecimal amount = new BigDecimal(tokens[0].trim());
             String source = tokens[1].trim().toUpperCase();
             String target = tokens[2].trim().toUpperCase();

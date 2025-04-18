@@ -4,6 +4,7 @@ import com.currency.demo_app.dto.response.ExchangeRateApiResponse;
 import com.currency.demo_app.dto.response.ExchangeRateResponseDTO;
 import com.currency.demo_app.exceptions.ExchangeRateException;
 import com.currency.demo_app.service.ExchangeRateService;
+import com.currency.demo_app.util.ParseUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -11,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.currency.demo_app.enums.ErrorCode.*;
 
@@ -83,40 +85,31 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
     private ExchangeRateResponseDTO fetchFromFixer(String source, String target) {
         try {
-            var uri = UriComponentsBuilder.fromHttpUrl(fixerUrl)
+            String uri = UriComponentsBuilder.fromHttpUrl(fixerUrl)
                     .queryParam("access_key", fixerKey)
                     .queryParam("base", source.toUpperCase())
                     .queryParam("symbols", target.toUpperCase())
                     .toUriString();
 
-            var response = restTemplate.getForObject(uri, Map.class);
+            Map<String, Object> response = restTemplate.getForObject(uri, Map.class);
 
             if (response == null) {
                 throw new ExchangeRateException(FIXER_ERROR);
             }
 
             if (!Boolean.TRUE.equals(response.get("success"))) {
-                String errorInfo = response.containsKey("error")
-                        ? response.get("error").toString()
-                        : "Unknown error";
+                String errorInfo = Optional.ofNullable(response.get("error"))
+                        .map(Object::toString)
+                        .orElse(FIXER_UNKNOWN_ERROR.getDefaultMessage());
                 throw new ExchangeRateException(FIXER_ERROR, errorInfo);
             }
 
-            var rates = (Map<String, Double>) response.get("rates");
-            if (rates == null) {
-                throw new ExchangeRateException(RATE_UNAVAILABLE);
-            }
-
-            if (!rates.containsKey(target.toUpperCase())) {
+            Map<String, Object> rates = ParseUtil.safeCastToMap(response.get("rates"));
+            if (rates == null || !rates.containsKey(target.toUpperCase())) {
                 throw new ExchangeRateException(RATE_UNAVAILABLE, source + " to " + target);
             }
 
-            BigDecimal exchangeRate;
-            try {
-                exchangeRate = BigDecimal.valueOf(rates.get(target.toUpperCase()));
-            } catch (Exception e) {
-                throw new ExchangeRateException(INVALID_RATE_FORMAT);
-            }
+            BigDecimal exchangeRate = ParseUtil.parseRate(rates.get(target.toUpperCase()));
 
             return new ExchangeRateResponseDTO(
                     source.toUpperCase(),
@@ -126,6 +119,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
         } catch (ClassCastException e) {
             throw new ExchangeRateException(FIXER_ERROR);
+        } catch (ExchangeRateException e) {
+            throw e;
         } catch (Exception e) {
             throw new ExchangeRateException(FIXER_ERROR, e.getMessage());
         }

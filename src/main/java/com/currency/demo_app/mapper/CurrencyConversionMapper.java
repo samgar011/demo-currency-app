@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CurrencyConversionMapper {
     
-    public CurrencyConversionResponseDTO toDto(CurrencyConversion conversion) {
+    public CurrencyConversionResponseDTO convert(CurrencyConversion conversion) {
         return CurrencyConversionResponseDTO.builder()
                 .transactionId(conversion.getTransactionId())
                 .sourceCurrency(conversion.getSourceCurrency())

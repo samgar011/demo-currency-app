@@ -4,7 +4,7 @@ public enum ErrorCode {
     CONVERSION_ERROR("CONVERSION_ERROR", "Currency conversion failed"),
     FILTER_ERROR("FILTER_ERROR", "Error filtering conversions"),
     INVALID_FILTER("INVALID_FILTER", "Invalid filter request"),
-    EMPTY_FILE("EMPTY_FILE", "Uploaded file is empty"),
+    EMPTY_FILE ("EMPTY_FILE", "Uploaded file is empty"),
     INVALID_FILE_TYPE("INVALID_FILE_TYPE", "Only CSV files are allowed"),
     FILE_READ_ERROR("FILE_READ_ERROR", "Failed to read CSV file"),
     PROCESSING_INTERRUPTED("PROCESSING_INTERRUPTED", "Bulk processing was interrupted"),
@@ -13,8 +13,9 @@ public enum ErrorCode {
     RATE_UNAVAILABLE("RATE_UNAVAILABLE", "Exchange rate not available"),
     INVALID_RATE_FORMAT("INVALID_RATE_FORMAT", "Invalid rate format from API"),
     EXCHANGE_RATE_ERROR("EXCHANGE_RATE_ERROR", "Failed to get exchange rate"),
-    INVALID_AMOUNT("INVALID_AMOUNT", "Amount must be greater than zero.");
-
+    INVALID_AMOUNT("INVALID_AMOUNT", "Amount must be greater than zero."),
+    INVALID_CSV_FORMAT("INVALID_CSV_FORMAT", "Each line must have exactly 3 values: amount, source currency, target currency"),
+    FIXER_UNKNOWN_ERROR("FIXER_UNKNOWN_ERROR", "Unknown error from Fixer API");
     private final String code;
     private final String defaultMessage;
 
