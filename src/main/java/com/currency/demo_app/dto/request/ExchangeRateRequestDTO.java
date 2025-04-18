@@ -4,9 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ExchangeRateRequestDTO {
     @NotBlank(message = "Source currency is required")
     @Pattern(regexp = "^[A-Z]{3}$", message = "Invalid source currency code")
