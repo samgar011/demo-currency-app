@@ -6,6 +6,7 @@ import com.currency.demo_app.dto.request.CurrencyConversionRequestDTO;
 import com.currency.demo_app.dto.response.CurrencyConversionListResponseDTO;
 import com.currency.demo_app.dto.response.CurrencyConversionResponseDTO;
 import com.currency.demo_app.exceptions.*;
+import com.currency.demo_app.mapper.CurrencyConversionMapper;
 import com.currency.demo_app.model.CurrencyConversion;
 import com.currency.demo_app.repository.CurrencyConversionRepository;
 import com.currency.demo_app.service.CurrencyConversionService;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.currency.demo_app.enums.ErrorCode.*;
@@ -37,6 +39,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
     private final ExchangeRateService exchangeRateService;
     private final CurrencyConversionRepository conversionRepository;
+    private final CurrencyConversionMapper conversionMapper;
 
 
     @Override
@@ -68,7 +71,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
                             .build()
             );
 
-            return mapToDto(saved);
+            return conversionMapper.toDto(saved);
 
         } catch (ServiceException e) {
             throw e;
@@ -101,7 +104,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
             List<CurrencyConversionResponseDTO> conversions = page.getContent()
                     .stream()
-                    .map(this::mapToDto)
+                    .map(conversionMapper::toDto)
                     .collect(Collectors.toList());
 
             return CurrencyConversionListResponseDTO.builder()
@@ -116,45 +119,47 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
         }
     }
 
+    @Override
     @Cacheable(
             value = "bulk",
             key = "T(com.currency.demo_app.util.CacheKeyUtil).bulkKey(#file, #useExternal)"
-    )   
-    @Override
+    )
     public List<BulkConversionResultDTO> processBulkFile(MultipartFile file, boolean useExternal) {
         if (file.isEmpty()) {
             throw new FileProcessingException(EMPTY_FILE);
         }
+
         if (!"text/csv".equals(file.getContentType())) {
             throw new FileProcessingException(INVALID_FILE_TYPE);
         }
 
-        List<BulkConversionResultDTO> results = new ArrayList<>();
-
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            String line;
-            int lineNumber = 0;
+            return reader.lines()
+                    .skip(1)
+                    .map(new Function<String, BulkConversionResultDTO>() {
+                        int lineNumber = 2;
 
-            while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                if (lineNumber == 1) continue;
-                results.add(processBulkLine(line, lineNumber, useExternal));
+                        @Override
+                        public BulkConversionResultDTO apply(String line) {
+                            BulkConversionResultDTO result = processBulkLine(line, lineNumber++, useExternal);
 
-                if (useExternal) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new FileProcessingException(PROCESSING_INTERRUPTED);
-                    }
-                }
-            }
+                            if (useExternal) {
+                                try {
+                                    TimeUnit.MILLISECONDS.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    throw new FileProcessingException(PROCESSING_INTERRUPTED);
+                                }
+                            }
+
+                            return result;
+                        }
+                    })
+                    .collect(Collectors.toList());
 
         } catch (IOException e) {
             throw new FileProcessingException(FILE_READ_ERROR, e.getMessage());
         }
-
-        return results;
     }
 
     private BulkConversionResultDTO processBulkLine(String line, int lineNumber, boolean useExternal) {
@@ -194,16 +199,5 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
                     .exchangeRate(BigDecimal.ZERO)
                     .build();
         }
-    }
-
-    private CurrencyConversionResponseDTO mapToDto(CurrencyConversion conversion) {
-        return CurrencyConversionResponseDTO.builder()
-                .transactionId(conversion.getTransactionId())
-                .sourceCurrency(conversion.getSourceCurrency())
-                .targetCurrency(conversion.getTargetCurrency())
-                .sourceAmount(conversion.getSourceAmount())
-                .convertedAmount(conversion.getConvertedAmount())
-                .exchangeRate(conversion.getExchangeRate())
-                .build();
     }
 }
