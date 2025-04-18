@@ -11,6 +11,7 @@ import com.currency.demo_app.repository.CurrencyConversionRepository;
 import com.currency.demo_app.service.CurrencyConversionService;
 import com.currency.demo_app.service.ExchangeRateService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
 
     private final ExchangeRateService exchangeRateService;
     private final CurrencyConversionRepository conversionRepository;
+
 
     @Override
     public CurrencyConversionResponseDTO convertCurrency(CurrencyConversionRequestDTO request) {
@@ -75,6 +77,10 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
         }
     }
 
+    @Cacheable(
+            value = "conversionFilters",
+            key = "T(com.currency.demo_app.util.CacheKeyUtil).filterKey(#request)"
+            )
     @Override
     public CurrencyConversionListResponseDTO filterConversions(CurrencyConversionFilterRequestDTO request) {
         if (request.getTransactionId() == null && request.getDate() == null) {
@@ -110,6 +116,10 @@ public class CurrencyConversionServiceImpl implements CurrencyConversionService 
         }
     }
 
+    @Cacheable(
+            value = "bulk",
+            key = "T(com.currency.demo_app.util.CacheKeyUtil).bulkKey(#file, #useExternal)"
+    )   
     @Override
     public List<BulkConversionResultDTO> processBulkFile(MultipartFile file, boolean useExternal) {
         if (file.isEmpty()) {
