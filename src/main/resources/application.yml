@@ -26,12 +26,12 @@ spring:
 
 currencylayer:
   api:
-    key: f5b32e84b822633a61f3fb404327edb5
+    key: e91746a8a999f8635cd24ff933ea952e
     url: http://api.currencylayer.com/live
 
 fixer:
   api:
-    key: fdf2164434cfe33015b16138377c6c4d
+    key: e2c72d40bfc9bd6f58431ec024dd184b
     url: http://data.fixer.io/api/latest
 
 exchange:
