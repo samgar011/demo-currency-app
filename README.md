@@ -21,7 +21,7 @@
 
 1. **Clone the repository**
 ```
-git clone https://your-repo-url.git
+git clone https://github.com/samgar011/demo-currency-app.git
 ```
 ```
 cd demo-currency-exchange
@@ -41,7 +41,7 @@ docker-compose build --no-cache
 docker-compose up
 ```
 
-This will start the application please dont forget to check your logs on your terminal
+This will start the application please do not forget to check your logs on your terminal
 
 ---
 
@@ -198,10 +198,10 @@ curl -X POST http://localhost:8080/exchange-rate/bulk \
 
 
 ## 📚 Notes
-- if you set "useExternalApi" as false you should use base money currency EUR otherwise you will get this error code "code=105, type=base_currency_access_restricted" which means you need to upgrade your plan out of free access plan
+- if you set ``` "useExternalApi" ``` as false you should use base money currency EUR otherwise you will get this error code ``` "code=105, type=base_currency_access_restricted" ``` which means you need to upgrade your plan out of free access plan
 - Redis is used to cache exchange rates for faster access.
 - The cache TTL (time to live) is set to 10 minutes.
-- Setting "useExternalApi" true uses "currencylayer.com" and false "fixer.io" 
+- Setting ``` "useExternalApi" ``` true uses ```  "currencylayer.com" ``` and false ``` "fixer.io" ``` 
 
 
 
