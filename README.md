@@ -24,7 +24,7 @@
 git clone https://github.com/samgar011/demo-currency-app.git
 ```
 ```
-cd demo-currency-exchange
+cd demo-currency-app
 ```
 
 2. **Build the project**
