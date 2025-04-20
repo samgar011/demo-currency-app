@@ -36,7 +36,6 @@ mvn clean install
 ```
 docker-compose build --no-cache
 ```
-5**Run Docker Compose**
 ```
 docker-compose up
 ```
