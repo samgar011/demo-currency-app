@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ExchangeRateController.class)
+@ActiveProfiles("test")
 class ExchangeRateControllerTest {
 
     @Autowired private MockMvc mockMvc;
@@ -53,4 +55,5 @@ class ExchangeRateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rate").value("0.95"));
     }
+
 }
