@@ -79,6 +79,7 @@ Exchange rate api.
 exchange rate with amount
 
 #### Example:
+#### Request Body:
 ```json
 {
   "amount": 100,
@@ -106,6 +107,7 @@ exchange rate with amount
 Filter the exchange rate conversion with transaction id or with date
 
 #### Example:
+#### Request Body:
 ```json
 {
   "date": "2025-04-20",
